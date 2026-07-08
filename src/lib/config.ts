@@ -8,12 +8,12 @@ export const AGENCY_NAME =
 export const ADVISOR_NAME = process.env.NEXT_PUBLIC_ADVISOR_NAME ?? "Aarav";
 
 export const MARKET_REGION =
-  process.env.NEXT_PUBLIC_MARKET_REGION ?? "Delhi NCR";
+  process.env.NEXT_PUBLIC_MARKET_REGION ?? "Gurugram (Gurgaon)";
 
-/** Localities/cities the agency serves, comma-separated in env. */
+/** Localities/corridors the agency serves, comma-separated in env. */
 export const SERVICE_AREAS = (
   process.env.NEXT_PUBLIC_SERVICE_AREAS ??
-  "Gurugram, Noida, Greater Noida, Dwarka, Faridabad, Ghaziabad, Delhi"
+  "Golf Course Road, Golf Course Extension Road, Dwarka Expressway, Sohna Road, Southern Peripheral Road, New Gurugram, Sohna (South Gurugram)"
 )
   .split(",")
   .map((s) => s.trim())

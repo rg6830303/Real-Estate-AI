@@ -1,57 +1,66 @@
 import type { ClientRequirements, Intent, PropertyListing, PropertyType } from "./types";
 import { SAMPLE_PROPERTIES } from "./sampleProperties";
+import { getDb, isMongoConfigured, PROPERTIES_COLLECTION } from "./mongodb";
 
 /**
- * Inventory access layer. When Supabase env vars are configured (production),
- * listings come live from the `properties` table via Supabase's REST API —
- * no extra SDK dependency needed. Without them (local dev, demos, backtests)
- * it falls back to the bundled sample inventory so the app always works.
+ * Inventory access layer, backed by MongoDB Atlas (MONGODB_URI). The bundled
+ * Gurgaon dataset is auto-seeded into the collection the first time the app
+ * runs against an empty database, so production starts working the moment
+ * the env var exists — no manual import step. Without Mongo configured (or
+ * if Atlas is unreachable) the same dataset serves as an in-process fallback,
+ * so the consultant is never left without inventory.
  */
 export async function fetchActiveProperties(): Promise<PropertyListing[]> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return SAMPLE_PROPERTIES;
-
+  if (!isMongoConfigured()) return SAMPLE_PROPERTIES;
   try {
-    const res = await fetch(
-      `${url}/rest/v1/properties?active=eq.true&select=*&limit=500`,
-      {
-        headers: { apikey: key, Authorization: `Bearer ${key}` },
-        // Listings change rarely relative to chat traffic; a short cache
-        // keeps per-message latency down without going stale.
-        next: { revalidate: 60 },
-      },
-    );
-    if (!res.ok) throw new Error(`Supabase ${res.status}`);
-    const rows = (await res.json()) as SupabasePropertyRow[];
-    const mapped = rows.map(fromRow).filter((p): p is PropertyListing => !!p);
+    const db = await getDb();
+    const col = db.collection(PROPERTIES_COLLECTION);
+
+    if ((await col.estimatedDocumentCount()) === 0) {
+      await seedProperties(false);
+    }
+
+    const rows = await col.find({ active: true }).limit(500).toArray();
+    const mapped = rows
+      .map((r) => fromDoc(r as Record<string, unknown>))
+      .filter((p): p is PropertyListing => !!p);
     return mapped.length > 0 ? mapped : SAMPLE_PROPERTIES;
   } catch {
-    // Never let an inventory outage take the consultant down.
+    // Never let a database outage take the consultant down.
     return SAMPLE_PROPERTIES;
   }
 }
 
-/** Row shape of the `properties` table in supabase/schema.sql. */
-interface SupabasePropertyRow {
-  id: string;
-  title: string;
-  city: string;
-  locality: string;
-  property_type: string;
-  bhk: string | null;
-  price_cr: number | string;
-  area_sqft: number;
-  possession: string;
-  possession_date: string | null;
-  intent_fit: string[] | null;
-  amenities: string[] | null;
-  highlights: string | null;
-  rera_id: string | null;
-  image_url: string | null;
-  active: boolean;
+/**
+ * Upsert the bundled listings into MongoDB, keyed by their stable string
+ * `_id` slug. With `overwrite`, existing rows are refreshed to the bundled
+ * values; without it, only missing rows are inserted (agency edits persist).
+ * Returns counts for reporting. Used by auto-seed and by /api/seed.
+ */
+export async function seedProperties(
+  overwrite: boolean,
+): Promise<{ inserted: number; updated: number; total: number }> {
+  const db = await getDb();
+  const col = db.collection(PROPERTIES_COLLECTION);
+  const seededAt = new Date().toISOString();
+  const ops = SAMPLE_PROPERTIES.map((p) => {
+    const { id, ...fields } = p;
+    const doc = { ...fields, seededAt };
+    return {
+      updateOne: {
+        filter: { _id: id as never },
+        update: overwrite ? { $set: doc } : { $setOnInsert: doc },
+        upsert: true,
+      },
+    };
+  });
+  const res = await col.bulkWrite(ops, { ordered: false });
+  const total = await col.countDocuments();
+  return {
+    inserted: res.upsertedCount,
+    updated: res.modifiedCount,
+    total,
+  };
 }
 
 const PROPERTY_TYPES: PropertyType[] = [
@@ -64,31 +73,43 @@ const PROPERTY_TYPES: PropertyType[] = [
 ];
 const INTENTS: Intent[] = ["buy", "rent", "invest"];
 
-function fromRow(row: SupabasePropertyRow): PropertyListing | null {
-  const priceCr = Number(row.price_cr);
-  if (!row.id || !row.title || !Number.isFinite(priceCr)) return null;
+function str(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v : null;
+}
+
+/** Map a MongoDB document (flexible shape) into a well-typed listing. */
+function fromDoc(doc: Record<string, unknown>): PropertyListing | null {
+  const priceCr = Number(doc.priceCr ?? doc.price_cr);
+  const title = str(doc.title);
+  if (!title || !Number.isFinite(priceCr) || priceCr <= 0) return null;
+  const id = String(doc._id ?? doc.id ?? title);
+  const possession =
+    (doc.possession ?? "") === "Under construction" ? "Under construction" : "Ready to move";
+  const rawIntent = Array.isArray(doc.intentFit ?? doc.intent_fit)
+    ? ((doc.intentFit ?? doc.intent_fit) as unknown[])
+    : [];
+  const rawAmenities = Array.isArray(doc.amenities) ? (doc.amenities as unknown[]) : [];
+  const propertyType = str(doc.propertyType ?? doc.property_type) ?? "Apartment";
   return {
-    id: row.id,
-    title: row.title,
-    city: row.city ?? "",
-    locality: row.locality ?? "",
-    propertyType: PROPERTY_TYPES.includes(row.property_type as PropertyType)
-      ? (row.property_type as PropertyType)
+    id,
+    title,
+    developer: str(doc.developer),
+    city: str(doc.city) ?? "Gurugram",
+    locality: str(doc.locality) ?? "",
+    propertyType: PROPERTY_TYPES.includes(propertyType as PropertyType)
+      ? (propertyType as PropertyType)
       : "Apartment",
-    bhk: row.bhk,
+    bhk: str(doc.bhk),
     priceCr,
-    areaSqft: Number(row.area_sqft) || 0,
-    possession:
-      row.possession === "Under construction" ? "Under construction" : "Ready to move",
-    possessionDate: row.possession_date,
-    intentFit: (row.intent_fit ?? []).filter((i): i is Intent =>
-      INTENTS.includes(i as Intent),
-    ),
-    amenities: row.amenities ?? [],
-    highlights: row.highlights,
-    reraId: row.rera_id,
-    imageUrl: row.image_url,
-    active: row.active,
+    areaSqft: Number(doc.areaSqft ?? doc.area_sqft) || 0,
+    possession,
+    possessionDate: str(doc.possessionDate ?? doc.possession_date),
+    intentFit: rawIntent.filter((i): i is Intent => INTENTS.includes(i as Intent)),
+    amenities: rawAmenities.filter((a): a is string => typeof a === "string"),
+    highlights: str(doc.highlights),
+    reraId: str(doc.reraId ?? doc.rera_id),
+    imageUrl: str(doc.imageUrl ?? doc.image_url),
+    active: doc.active !== false,
   };
 }
 
@@ -137,8 +158,7 @@ function bhkScore(r: ClientRequirements, p: PropertyListing): number {
 function budgetScore(r: ClientRequirements, p: PropertyListing): number {
   if (r.budgetMaxCr == null || r.budgetMaxCr <= 0) return 0;
   const ratio = p.priceCr / r.budgetMaxCr;
-  // Full marks at or comfortably within budget (up to 15% stretch, which a
-  // consultant would legitimately still show); taper for far-under-budget.
+  // Full marks at or comfortably within budget; taper for far-under-budget.
   if (ratio > 1.15 || ratio < 0.4) return 0;
   return ratio >= 0.7 ? 20 : 10;
 }
@@ -156,11 +176,6 @@ function intentScore(r: ClientRequirements, p: PropertyListing): number {
 function possessionScore(r: ClientRequirements, p: PropertyListing): number {
   if (!r.possessionPref || r.possessionPref === "No preference") return 0;
   return r.possessionPref === p.possession ? 5 : 0;
-}
-
-export interface ScoredListing {
-  listing: PropertyListing;
-  score: number;
 }
 
 /**

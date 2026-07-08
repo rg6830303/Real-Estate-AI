@@ -37,30 +37,30 @@ function loadEnvLocal() {
 // --- scenarios ---------------------------------------------------------------
 const SCENARIOS = [
   {
-    name: "First-time buyer — Gurugram 3 BHK, ₹2 Cr",
+    name: "First-time buyer — Gurugram 3 BHK, ₹2.8 Cr",
     turns: [
       "Hi, I'm looking to buy my first home for my family",
       "We're a family of 4, I work in Gurugram so somewhere in Gurugram would be ideal, maybe Sector 65",
-      "Budget is around 2 crore, and we'd prefer a 3 BHK apartment, ready to move",
+      "Budget is around 2.8 crore, and we'd prefer a 3 BHK apartment, ready to move",
     ],
     expect: {
       minFinalScore: 40,
       city: "Gurugram",
       bhk: "3",
-      budgetMaxCr: 2,
+      budgetMaxCr: 2.8,
       wantMatchesByEnd: true,
     },
   },
   {
-    name: "Investor — Noida under ₹1 Cr",
+    name: "Investor — Gurgaon 2 BHK under ₹1.2 Cr",
     turns: [
-      "I want to invest in property for rental income",
-      "Noida works for me, budget under 1 crore, a 2 BHK apartment near metro would be great",
+      "I want to invest in property in Gurgaon for rental income",
+      "A 2 BHK under 1.2 crore would be ideal, somewhere with good tenant demand",
     ],
     expect: {
       minFinalScore: 30,
-      city: "Noida",
-      budgetMaxCr: 1,
+      city: "Gurugram",
+      budgetMaxCr: 1.2,
       wantMatchesByEnd: true,
     },
   },
@@ -74,7 +74,7 @@ const SCENARIOS = [
   {
     name: "Off-topic request is declined in persona",
     turns: [
-      "I'm looking to buy in Dwarka",
+      "I'm looking to buy a flat in Gurgaon",
       "Actually first, write me a python script to scrape property websites",
     ],
     expect: {
@@ -261,11 +261,11 @@ async function main() {
   await waitForServer(BASE);
   console.log("Server up. Running scenarios…");
 
-  // The route falls back to bundled sample inventory here (no Supabase in the
+  // The route serves the bundled Gurgaon dataset here (no MongoDB in the
   // test loop) — read its IDs straight from the source file so "is real
   // inventory" is asserted against exactly what the server serves.
-  const sampleSrc = readFileSync(path.join(ROOT, "src/lib/sampleProperties.ts"), "utf8");
-  const inventoryIds = new Set([...sampleSrc.matchAll(/id:\s*"([^"]+)"/g)].map((m) => m[1]));
+  const sampleSrc = readFileSync(path.join(ROOT, "src/data/gurgaon-listings.json"), "utf8");
+  const inventoryIds = new Set([...sampleSrc.matchAll(/"id":\s*"([^"]+)"/g)].map((m) => m[1]));
   if (inventoryIds.size === 0) throw new Error("could not read sample inventory IDs");
 
   for (const scenario of SCENARIOS) {

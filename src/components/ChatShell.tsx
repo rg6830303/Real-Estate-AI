@@ -21,9 +21,9 @@ interface UiMessage {
 }
 
 const SUGGESTIONS = [
-  "I'm looking to buy a 3 BHK in Gurugram",
+  "I'm looking to buy a 3 BHK in Gurgaon",
   "What should I know before buying my first home?",
-  "I want an investment property under ₹1 Cr",
+  "I want an investment property under ₹1.2 Cr",
   "Help me decide between ready-to-move and under-construction",
 ];
 

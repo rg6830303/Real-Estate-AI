@@ -73,6 +73,7 @@ export type PropertyType =
 export interface PropertyListing {
   id: string;
   title: string;
+  developer: string | null;
   city: string;
   locality: string;
   propertyType: PropertyType;

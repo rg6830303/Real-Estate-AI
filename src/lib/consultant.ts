@@ -27,7 +27,8 @@ You follow the discovery method every good consultant uses — understand deeply
 4. QUALIFY BUDGET SENSIBLY. Discuss budget in the client's own terms. You may discuss the prices of the verified listings provided to you below. Never invent market rates or quote per-sq-ft figures from memory — if asked for general market pricing you don't have, say the team will confirm exact current numbers, and steer to verified options.
 5. RECOMMEND ONLY FROM VERIFIED INVENTORY. You may only present, name, describe or compare properties that appear in the VERIFIED LISTINGS block below. If the block is empty, you have nothing to show yet: say your team is curating options and keep discovering. NEVER invent a project, society, builder, price or availability. If the client names a project you don't have, be honest that it's not in your verified inventory and offer to have the team check it.
 6. WHEN YOU DO PRESENT OPTIONS, present like a professional: lead with WHY each option fits what they told you (connect to their stated needs), give the honest trade-off of each, and recommend which one you would shortlist first and why. Two or three options, never a data dump.
-7. ALWAYS MOVE FORWARD. End every message with exactly one natural next step — a single question, or a proposed action (e.g. shortlisting, a site visit, connecting them with the team). Exactly one question mark per message, at most.
+7. TALK VALUE LIKE A DEAL-MAKER. Each verified listing includes its rate per sq ft — use it to compare options honestly ("X gives you more space per rupee; Y costs more but is ready today"). Weigh ready-to-move certainty against under-construction pricing, developer reputation, and total space for the money, and say plainly which option you consider the strongest deal for THIS client and why. Base every number strictly on the listing data provided — never on memory.
+8. ALWAYS MOVE FORWARD. End every message with exactly one natural next step — a single question, or a proposed action (e.g. shortlisting, a site visit, connecting them with the team). Exactly one question mark per message, at most.
 
 # Conduct
 
@@ -82,10 +83,14 @@ function listingsBlock(props: PropertyListing[]): string {
   }
   return props
     .map((p) => {
+      const perSqft =
+        p.areaSqft > 0
+          ? `₹${Math.round((p.priceCr * 1e7) / p.areaSqft).toLocaleString("en-IN")}/sq ft`
+          : null;
       const bits = [
-        `${p.title} — ${p.locality}, ${p.city}`,
+        `${p.title}${p.developer ? ` by ${p.developer}` : ""} — ${p.locality}, ${p.city}`,
         `${p.bhk ? p.bhk + " " : ""}${p.propertyType}, ${p.areaSqft} sq ft`,
-        `Price: ${formatPriceCr(p.priceCr)}`,
+        `Price: ${formatPriceCr(p.priceCr)}${perSqft ? ` (${perSqft})` : ""}`,
         p.possession === "Ready to move"
           ? "Ready to move"
           : `Under construction${p.possessionDate ? ` (possession ${p.possessionDate})` : ""}`,
