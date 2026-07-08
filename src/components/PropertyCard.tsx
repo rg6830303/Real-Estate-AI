@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { BadgeCheck, Building, Home, MapPin, PlayCircle, Ruler } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, BadgeCheck, Building, Home, MapPin, PlayCircle, Ruler } from "lucide-react";
 import type { PropertyListing } from "@/lib/types";
 import { formatArea, formatPriceCr } from "@/lib/format";
 
@@ -117,6 +118,14 @@ export default function PropertyCard({ listing }: { listing: PropertyListing }) 
             </span>
           ) : null}
         </div>
+
+        <Link
+          href={`/property-detail/${listing.id}`}
+          className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 transition hover:text-brand-600"
+        >
+          View details
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </Link>
       </div>
     </div>
   );
