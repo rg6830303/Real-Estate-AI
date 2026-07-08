@@ -63,7 +63,7 @@ export default function PageVoiceIntro() {
     const line = introFor(pathname);
     setText(line);
     setShow(true);
-    speak(line); // may be autoplay-blocked before first interaction; caption still shows
+    void speak(line); // may be autoplay-blocked before first interaction; caption still shows
 
     if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => setShow(false), 15000);
@@ -85,7 +85,7 @@ export default function PageVoiceIntro() {
     setMuted(next);
     setVoiceEnabled(!next);
     if (next) stopSpeaking();
-    else speak(text, { force: true });
+    else void speak(text, { force: true });
   }
 
   return (

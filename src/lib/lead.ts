@@ -87,6 +87,14 @@ function leadBody(p: LeadPayload): string {
  * Origin/User-Agent → reliable); falls back to the server proxy if needed.
  */
 export async function submitLead(p: LeadPayload): Promise<{ delivered: boolean }> {
+  // Record in our DB for the admin "Form submissions" log — independent of
+  // whether Web3Forms email delivery succeeds.
+  void fetch("/api/leads", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(p),
+  }).catch(() => {});
+
   const subject =
     p.mode === "ai-consultation"
       ? `New AI-qualified lead — ${p.name || p.phone}`

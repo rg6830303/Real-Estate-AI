@@ -180,7 +180,7 @@ export default function ChatShell({
           turnProperties,
         );
         // Read the reply aloud (each output has audio); muted respects prefs.
-        if (assistantText.trim()) speak(assistantText);
+        if (assistantText.trim()) void speak(assistantText);
       } catch (err) {
         setMessages((prev) => prev.slice(0, -1));
         setError(

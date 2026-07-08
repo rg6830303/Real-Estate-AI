@@ -4,6 +4,8 @@ import { useState } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import clsx from "clsx";
 import { submitLead } from "@/lib/lead";
+import { speak } from "@/lib/speech";
+import { ADVISOR_NAME } from "@/lib/config";
 
 type Mode = "enquiry" | "visit";
 
@@ -11,17 +13,20 @@ export default function ContactForm() {
   const [mode, setMode] = useState<Mode>("enquiry");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState("");
+  const [name, setName] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
+    const submittedName = String(fd.get("name") ?? "").trim();
+    setName(submittedName);
     setStatus("sending");
     setError("");
     try {
       const { delivered } = await submitLead({
         mode: mode === "visit" ? "visit" : "enquiry",
-        name: String(fd.get("name") ?? ""),
+        name: submittedName,
         phone: String(fd.get("phone") ?? ""),
         email: String(fd.get("email") ?? ""),
         interest: String(fd.get("interest") ?? ""),
@@ -34,6 +39,9 @@ export default function ContactForm() {
         );
       }
       setStatus("done");
+      void speak(
+        `Thank you${submittedName ? ", " + submittedName : ""}! Your details are with our team and we'll reach out to you very shortly. This is ${ADVISOR_NAME} from Radiance Realtors.`,
+      );
       form.reset();
     } catch (err) {
       setStatus("error");
@@ -45,7 +53,9 @@ export default function ContactForm() {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" strokeWidth={1.5} />
-        <p className="mt-3 text-lg font-semibold text-ink-950">Thank you — we&apos;ve got it.</p>
+        <p className="mt-3 text-lg font-semibold text-ink-950">
+          Thank you{name ? `, ${name}` : ""} — we&apos;ve got it.
+        </p>
         <p className="mt-1 text-sm text-ink-950/65">
           Our team will reach out shortly. Meanwhile, feel free to chat with Ashirvad for instant
           shortlisting.
