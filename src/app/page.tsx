@@ -60,10 +60,10 @@ export default async function Home() {
               Start with {ADVISOR_NAME}
             </Link>
             <Link
-              href="/#properties"
+              href="/properties"
               className="inline-flex items-center gap-2 rounded-lg border border-white/25 px-6 py-3 text-sm font-medium text-white transition hover:border-gold-300 hover:text-gold-300"
             >
-              Browse featured properties
+              Browse all properties
             </Link>
           </div>
         </div>
@@ -103,10 +103,10 @@ export default async function Home() {
             </p>
           </div>
           <Link
-            href="/consultant"
+            href="/properties"
             className="rounded-lg border border-ink-950/15 px-4 py-2 text-sm font-medium text-ink-950 transition hover:border-gold-500 hover:text-brand-700"
           >
-            Get a personal shortlist →
+            View all properties →
           </Link>
         </div>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

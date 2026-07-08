@@ -1,25 +1,40 @@
 import Link from "next/link";
-import { Building2, Facebook, Globe, MapPin } from "lucide-react";
+import { Facebook, Globe, Mail, MapPin, Phone } from "lucide-react";
+import BrandLogo from "./BrandLogo";
 import { ADVISOR_NAME, AGENCY_NAME } from "@/lib/config";
 
 export default function SiteFooter() {
   return (
     <footer id="contact" className="border-t border-gold-500/20 bg-ink-950 text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-gold-500/40 bg-ink-900 text-gold-400">
-              <Building2 className="h-5 w-5" strokeWidth={1.75} />
-            </div>
-            <p className="text-base font-semibold tracking-wide">
-              {AGENCY_NAME.toUpperCase()}
-            </p>
-          </div>
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">
+        <div className="md:col-span-1">
+          <BrandLogo />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">
             Premium residences and smart investments, guided with trust,
             integrity and excellence — from luxury floors in Gurugram to
             holiday homes in Goa.
           </p>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.15em] text-gold-300">
+            Explore
+          </p>
+          <ul className="mt-4 space-y-2 text-sm text-white/70">
+            {[
+              ["Properties", "/properties"],
+              ["About Us", "/about-us"],
+              ["Mission & Vision", "/mission-vission"],
+              ["Contact", "/contact"],
+              [`Chat with ${ADVISOR_NAME}`, "/consultant"],
+            ].map(([label, href]) => (
+              <li key={href}>
+                <Link href={href} className="transition hover:text-gold-300">
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div>
@@ -41,6 +56,31 @@ export default function SiteFooter() {
             Reach us
           </p>
           <ul className="mt-4 space-y-2 text-sm text-white/70">
+            <li className="flex items-start gap-2">
+              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-400" strokeWidth={1.75} />
+              Plot #11, Sector 41, Gurugram, Haryana
+            </li>
+            <li className="flex items-center gap-2">
+              <Phone className="h-3.5 w-3.5 text-gold-400" strokeWidth={1.75} />
+              <a href="tel:+919818099292" className="transition hover:text-gold-300">
+                +91 98180 99292
+              </a>
+            </li>
+            <li className="flex items-center gap-2">
+              <Phone className="h-3.5 w-3.5 text-gold-400" strokeWidth={1.75} />
+              <a href="tel:+919899196999" className="transition hover:text-gold-300">
+                +91 98991 96999
+              </a>
+            </li>
+            <li className="flex items-center gap-2">
+              <Mail className="h-3.5 w-3.5 text-gold-400" strokeWidth={1.75} />
+              <a
+                href="mailto:info@radiancerealtors.in"
+                className="transition hover:text-gold-300"
+              >
+                info@radiancerealtors.in
+              </a>
+            </li>
             <li className="flex items-center gap-2">
               <Globe className="h-3.5 w-3.5 text-gold-400" strokeWidth={1.75} />
               <a
@@ -64,12 +104,6 @@ export default function SiteFooter() {
               </a>
             </li>
           </ul>
-          <Link
-            href="/consultant"
-            className="mt-5 inline-block rounded-lg border border-gold-500/50 px-4 py-2 text-sm font-medium text-gold-300 transition hover:bg-gold-500 hover:text-ink-950"
-          >
-            Chat with {ADVISOR_NAME}
-          </Link>
         </div>
       </div>
 
