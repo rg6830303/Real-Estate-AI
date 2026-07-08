@@ -1,5 +1,4 @@
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import ChatWidget from "@/components/ChatWidget";
 import ContactForm from "@/components/ContactForm";
 import PageHero from "@/components/PageHero";
 import SiteFooter from "@/components/SiteFooter";
@@ -80,7 +79,6 @@ export default function ContactPage() {
         <ContactForm />
       </section>
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }

@@ -1,5 +1,4 @@
 import { ArrowUpRight, CalendarDays } from "lucide-react";
-import ChatWidget from "@/components/ChatWidget";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
@@ -104,7 +103,6 @@ export default function BlogPage() {
         </div>
       </section>
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }

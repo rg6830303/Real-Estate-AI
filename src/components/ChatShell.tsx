@@ -22,11 +22,29 @@ interface UiMessage {
 }
 
 const SUGGESTIONS = [
-  "I'm looking to buy a 3 BHK in Gurgaon",
-  "What should I know before buying my first home?",
-  "I want an investment property under ₹1.2 Cr",
-  "Help me decide between ready-to-move and under-construction",
+  "I'm looking to buy a home in Gurgaon",
+  "I want an investment property",
+  "Show me ready-to-move options",
+  "Help me buy my first home",
 ];
+
+/**
+ * Contextual quick replies that guide the standard intake — the chips adapt to
+ * the next thing the consultant needs to know, so users can tap instead of type.
+ */
+function nextSuggestions(r: ClientRequirements): string[] {
+  if (r.intent === "unknown")
+    return ["I want to buy a home", "I'm looking to invest", "I need rental income"];
+  if (r.budgetMaxCr == null)
+    return ["Under ₹1.5 Cr", "₹1.5–3 Cr", "₹3–6 Cr", "₹6 Cr+"];
+  if (!r.city && r.localities.length === 0)
+    return ["Gurugram", "Dwarka Expressway", "Sohna Road", "New Delhi"];
+  if (!r.bhk && !r.propertyType)
+    return ["2 BHK", "3 BHK", "4 BHK", "Commercial"];
+  if (!r.timeline) return ["Ready to move", "Within 3 months", "Just exploring"];
+  if (!r.possessionPref) return ["Ready to move", "Under construction", "No preference"];
+  return [];
+}
 
 export default function ChatShell({
   variant = "full",
@@ -172,7 +190,8 @@ export default function ChatShell({
     [busy, messages, requirements],
   );
 
-  const showSuggestions = messages.length <= 1 && !busy;
+  const suggestions = messages.length <= 1 ? SUGGESTIONS : nextSuggestions(requirements);
+  const showSuggestions = !busy && !requirements.phone && suggestions.length > 0;
 
   return (
     <div
@@ -231,7 +250,7 @@ export default function ChatShell({
 
         {showSuggestions ? (
           <div className="flex flex-wrap gap-2 border-t border-ink-950/5 px-4 py-3">
-            {SUGGESTIONS.map((s) => (
+            {suggestions.map((s) => (
               <button
                 key={s}
                 onClick={() => void send(s)}

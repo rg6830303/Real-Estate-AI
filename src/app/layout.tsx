@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AGENCY_NAME, AGENCY_TAGLINE } from "@/lib/config";
+import ChatWidget from "@/components/ChatWidget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ChatWidget />
+      </body>
     </html>
   );
 }

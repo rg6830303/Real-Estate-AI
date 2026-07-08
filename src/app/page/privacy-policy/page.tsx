@@ -1,4 +1,3 @@
-import ChatWidget from "@/components/ChatWidget";
 import PageHero from "@/components/PageHero";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -61,7 +60,6 @@ export default function PrivacyPolicyPage() {
         </div>
       </main>
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }

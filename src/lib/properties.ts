@@ -105,12 +105,31 @@ export const LEGACY_SEED_IDS: string[] = [
   "adani-samsara-vilasa-s63",
 ];
 
-/** Delete any retired demo rows. Returns how many were removed. */
-export async function purgeLegacySeed(): Promise<number> {
+/** Live database storage usage (bytes) for the admin console. */
+export async function getDbStorage(): Promise<{
+  dataSize: number;
+  storageSize: number;
+  indexSize: number;
+  totalSize: number;
+  objects: number;
+}> {
   const db = await getDb();
-  const col = db.collection(PROPERTIES_COLLECTION);
-  const res = await col.deleteMany({ _id: { $in: LEGACY_SEED_IDS as never[] } });
-  return res.deletedCount;
+  const s = (await db.stats()) as {
+    dataSize?: number;
+    storageSize?: number;
+    indexSize?: number;
+    objects?: number;
+  };
+  const dataSize = s.dataSize ?? 0;
+  const storageSize = s.storageSize ?? 0;
+  const indexSize = s.indexSize ?? 0;
+  return {
+    dataSize,
+    storageSize,
+    indexSize,
+    totalSize: storageSize + indexSize,
+    objects: s.objects ?? 0,
+  };
 }
 
 const PROPERTY_TYPES: PropertyType[] = [

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight, Building2 } from "lucide-react";
-import ChatWidget from "@/components/ChatWidget";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
@@ -62,7 +61,6 @@ export default function BuildersPage() {
         </div>
       </section>
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }

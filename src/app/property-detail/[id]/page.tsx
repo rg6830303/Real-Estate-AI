@@ -10,7 +10,6 @@ import {
   MessageCircle,
   Ruler,
 } from "lucide-react";
-import ChatWidget from "@/components/ChatWidget";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { ADVISOR_NAME, AGENCY_NAME } from "@/lib/config";
@@ -214,7 +213,6 @@ export default async function PropertyDetail({
         </div>
       </main>
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }

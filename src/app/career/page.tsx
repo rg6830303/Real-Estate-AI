@@ -1,5 +1,4 @@
 import { ArrowUpRight, Briefcase, Heart, TrendingUp, Users } from "lucide-react";
-import ChatWidget from "@/components/ChatWidget";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
@@ -87,7 +86,6 @@ export default function CareerPage() {
         </div>
       </section>
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }

@@ -10,7 +10,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import BuilderMarquee from "@/components/BuilderMarquee";
-import ChatWidget from "@/components/ChatWidget";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import PropertyCard from "@/components/PropertyCard";
 import Reveal from "@/components/Reveal";
@@ -235,7 +234,6 @@ export default async function Home() {
       </section>
 
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }

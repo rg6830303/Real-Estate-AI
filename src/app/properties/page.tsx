@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import ChatWidget from "@/components/ChatWidget";
 import PageHero from "@/components/PageHero";
 import PropertyFilters from "@/components/PropertyFilters";
 import SiteFooter from "@/components/SiteFooter";
@@ -32,7 +31,6 @@ export default async function PropertiesPage() {
         </Suspense>
       </main>
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }

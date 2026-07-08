@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Building2, Database, MapPin, Pencil, PlayCircle } from "lucide-react";
-import CleanDemoButton from "@/components/admin/CleanDemoButton";
+import AddCityButton from "@/components/admin/AddCityButton";
+import DbStats from "@/components/admin/DbStats";
 import DeleteButton from "@/components/admin/DeleteButton";
 import { isMongoConfigured } from "@/lib/mongodb";
 import { listAllProperties } from "@/lib/properties";
@@ -43,21 +44,25 @@ export default async function AdminDashboard() {
             Manage inventory city-wise. Changes reach the website and AI consultant immediately.
           </p>
         </div>
-        <CleanDemoButton />
+        <AddCityButton />
       </div>
 
-      {/* Stats */}
-      <div className="mt-6 grid grid-cols-3 gap-4">
+      {/* Stats + live storage */}
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1fr_1fr_1.4fr]">
         {[
           { label: "Total listings", value: listings.length },
           { label: "Cities", value: cities.length },
           { label: "Active", value: activeCount },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-ink-950/10 bg-white p-4 shadow-card">
-            <p className="text-2xl font-semibold text-ink-950">{s.value}</p>
+          <div
+            key={s.label}
+            className="flex flex-col justify-center rounded-2xl border border-ink-950/10 bg-white p-5 shadow-card"
+          >
+            <p className="text-3xl font-semibold text-ink-950">{s.value}</p>
             <p className="text-xs text-ink-950/55">{s.label}</p>
           </div>
         ))}
+        <DbStats />
       </div>
 
       {listings.length === 0 ? (

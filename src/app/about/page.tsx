@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import ChatWidget from "@/components/ChatWidget";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import SiteFooter from "@/components/SiteFooter";
@@ -108,7 +107,6 @@ export default function AboutPage() {
       </section>
 
       <SiteFooter />
-      <ChatWidget />
     </>
   );
 }
