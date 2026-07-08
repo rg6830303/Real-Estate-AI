@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CheckCircle2, Mail, MessageCircle, SendHorizontal } from "lucide-react";
+import { CheckCircle2, Mail, MessageCircle, SendHorizontal, Volume2, VolumeX } from "lucide-react";
 import clsx from "clsx";
 import { ADVISOR_NAME } from "@/lib/config";
 import { openingGreeting } from "@/lib/consultant";
 import { emailHref, requirementsText, whatsappHref } from "@/lib/lead";
+import { primeVoices, setVoiceEnabled, speak, stopSpeaking, voiceEnabled } from "@/lib/speech";
 import {
   EMPTY_REQUIREMENTS,
   type ChatStreamEvent,
@@ -62,9 +63,15 @@ export default function ChatShell({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shortlist, setShortlist] = useState<PropertyListing[]>([]);
+  const [muted, setMuted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const submittedPhoneRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    primeVoices();
+    setMuted(!voiceEnabled());
+  }, []);
 
   // When the client shares their phone, auto-submit the captured requirements +
   // shortlist to the team (Web3Forms) exactly once — the AI "fills the form".
@@ -102,6 +109,7 @@ export default function ChatShell({
       setError(null);
       setInput("");
       setBusy(true);
+      stopSpeaking();
 
       const history = [...messages, { role: "user" as const, content }];
       // Optimistic user bubble + empty assistant bubble that streams in.
@@ -175,6 +183,8 @@ export default function ChatShell({
           assistantText || "…",
           turnProperties,
         );
+        // Read the reply aloud (each output has audio); muted respects prefs.
+        if (assistantText.trim()) speak(assistantText);
       } catch (err) {
         setMessages((prev) => prev.slice(0, -1));
         setError(
@@ -223,6 +233,19 @@ export default function ChatShell({
               Senior Property Consultant · online
             </p>
           </div>
+          <button
+            onClick={() => {
+              const next = !muted;
+              setMuted(next);
+              setVoiceEnabled(!next);
+              if (next) stopSpeaking();
+            }}
+            aria-label={muted ? "Unmute voice" : "Mute voice"}
+            title={muted ? "Voice off" : "Voice on"}
+            className="ml-auto rounded-lg border border-white/15 p-1.5 text-white/70 transition hover:text-gold-300"
+          >
+            {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
         </div>
 
         <div
@@ -324,7 +347,16 @@ function MessageBubble({
               : "rounded-bl-md border border-ink-950/10 bg-[#f8fafb] text-ink-950",
           )}
         >
-          {message.content || (streaming ? <TypingDots /> : null)}
+          {message.content ? (
+            <>
+              {message.content}
+              {streaming ? (
+                <span className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-ink-950/50 align-middle" />
+              ) : null}
+            </>
+          ) : streaming ? (
+            <ThinkingIndicator />
+          ) : null}
         </div>
         {message.properties?.length ? (
           <div className="grid gap-2">
@@ -376,16 +408,21 @@ function HandoffCard({
   );
 }
 
-function TypingDots() {
+function ThinkingIndicator() {
   return (
-    <span className="inline-flex items-center gap-1 py-1">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="h-1.5 w-1.5 animate-pulseDot rounded-full bg-ink-950/50"
-          style={{ animationDelay: `${i * 0.15}s` }}
-        />
-      ))}
+    <span className="inline-flex items-center gap-2 py-0.5">
+      <span className="inline-flex items-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="h-1.5 w-1.5 animate-pulseDot rounded-full bg-brand-500"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
+      </span>
+      <span className="bg-gradient-to-r from-ink-950/40 via-ink-950/70 to-ink-950/40 bg-[length:500px_100%] bg-clip-text text-xs font-medium text-transparent animate-shimmer">
+        {ADVISOR_NAME} is thinking…
+      </span>
     </span>
   );
 }

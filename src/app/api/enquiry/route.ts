@@ -44,10 +44,10 @@ export async function POST(req: Request) {
     received_at: new Date().toISOString(),
   };
 
-  const accessKey = process.env.WEB3_API;
+  const accessKey = (process.env.WEB3_API || process.env.NEXT_PUBLIC_WEB3_API || "").trim();
   if (!accessKey) {
     console.log("[radiance:lead] (WEB3_API unset)", JSON.stringify(lead));
-    return NextResponse.json({ ok: true, delivered: false });
+    return NextResponse.json({ ok: true, delivered: false, reason: "WEB3_API env var not set" });
   }
 
   try {
@@ -65,18 +65,41 @@ export async function POST(req: Request) {
         access_key: accessKey,
         subject,
         from_name: name || "Radiance website",
+        replyto: lead.email || undefined,
+        // A readable body for the notification email:
+        message: buildEmailBody(lead),
         ...lead,
       }),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(12000),
     });
-    const data = (await res.json().catch(() => null)) as { success?: boolean } | null;
+    const data = (await res.json().catch(() => null)) as
+      | { success?: boolean; message?: string }
+      | null;
     if (!res.ok || !data?.success) {
-      console.log("[radiance:lead] web3forms non-success", JSON.stringify(lead));
-      return NextResponse.json({ ok: true, delivered: false });
+      const reason = `web3forms ${res.status}: ${data?.message ?? "no success"}`;
+      console.log("[radiance:lead] " + reason, JSON.stringify(lead));
+      return NextResponse.json({ ok: true, delivered: false, reason });
     }
     return NextResponse.json({ ok: true, delivered: true });
   } catch (err) {
-    console.log("[radiance:lead] web3forms error", err instanceof Error ? err.message : "");
-    return NextResponse.json({ ok: true, delivered: false });
+    const reason = err instanceof Error ? err.message : "network error";
+    console.log("[radiance:lead] web3forms error", reason);
+    return NextResponse.json({ ok: true, delivered: false, reason });
   }
+}
+
+function buildEmailBody(lead: Record<string, string>): string {
+  const lines = [
+    `Type: ${lead.mode}`,
+    `Name: ${lead.name}`,
+    `Phone: ${lead.phone}`,
+    lead.email ? `Email: ${lead.email}` : "",
+    lead.interest ? `Interested in: ${lead.interest}` : "",
+    lead.preferred_date ? `Preferred date: ${lead.preferred_date}` : "",
+    lead.requirements ? `\nRequirements:\n${lead.requirements}` : "",
+    lead.shortlist ? `\nShortlisted: ${lead.shortlist}` : "",
+    lead.message ? `\nMessage: ${lead.message}` : "",
+    `\nReceived: ${lead.received_at}`,
+  ].filter(Boolean);
+  return lines.join("\n");
 }

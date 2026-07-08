@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AGENCY_NAME, AGENCY_TAGLINE } from "@/lib/config";
 import ChatWidget from "@/components/ChatWidget";
+import PageVoiceIntro from "@/components/PageVoiceIntro";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <PageVoiceIntro />
         <ChatWidget />
       </body>
     </html>
