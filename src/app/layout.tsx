@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { AGENCY_NAME, MARKET_REGION } from "@/lib/config";
+import { AGENCY_NAME, AGENCY_TAGLINE } from "@/lib/config";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: `${AGENCY_NAME} — AI Property Consultant`,
-  description: `Chat with ${AGENCY_NAME}'s AI property consultant to find the right home or investment in ${MARKET_REGION}.`,
+  title: `${AGENCY_NAME} — ${AGENCY_TAGLINE}`,
+  description: `${AGENCY_NAME}: premium properties and smart investments across Gurugram, Delhi and Goa. Chat with Ashirvad, our AI property consultant, for a verified shortlist that fits your needs.`,
 };
 
 export default function RootLayout({

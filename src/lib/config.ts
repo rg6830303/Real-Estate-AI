@@ -3,9 +3,13 @@
  * so the same codebase can be wired into any agency website.
  */
 export const AGENCY_NAME =
-  process.env.NEXT_PUBLIC_AGENCY_NAME ?? "Horizon Estates";
+  process.env.NEXT_PUBLIC_AGENCY_NAME ?? "Radiance Realtors";
 
-export const ADVISOR_NAME = process.env.NEXT_PUBLIC_ADVISOR_NAME ?? "Aarav";
+export const ADVISOR_NAME = process.env.NEXT_PUBLIC_ADVISOR_NAME ?? "Ashirvad";
+
+export const AGENCY_TAGLINE =
+  process.env.NEXT_PUBLIC_AGENCY_TAGLINE ??
+  "Find Your Dream Home & Smart Investments";
 
 export const MARKET_REGION =
   process.env.NEXT_PUBLIC_MARKET_REGION ?? "Gurugram (Gurgaon)";

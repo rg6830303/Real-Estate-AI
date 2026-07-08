@@ -12,7 +12,7 @@ body {
 }
 
 body {
-  @apply bg-[#f4f6f9] text-ink-950 antialiased;
+  @apply bg-cream-50 text-ink-950 antialiased;
   font-feature-settings: "ss01", "cv05";
 }
 

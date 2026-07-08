@@ -27,7 +27,13 @@ const SUGGESTIONS = [
   "Help me decide between ready-to-move and under-construction",
 ];
 
-export default function ChatShell() {
+export default function ChatShell({
+  variant = "full",
+}: {
+  /** "full" = chat + requirements panel; "widget" = compact chat only. */
+  variant?: "full" | "widget";
+}) {
+  const isWidget = variant === "widget";
   const [messages, setMessages] = useState<UiMessage[]>([
     { role: "assistant", content: openingGreeting() },
   ]);
@@ -143,9 +149,22 @@ export default function ChatShell() {
   const showSuggestions = messages.length <= 1 && !busy;
 
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+    <div
+      className={
+        isWidget
+          ? "flex h-full min-h-0 flex-1 flex-col"
+          : "grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]"
+      }
+    >
       {/* Chat column */}
-      <section className="flex min-h-[70vh] flex-col overflow-hidden rounded-2xl border border-ink-950/10 bg-white shadow-panel">
+      <section
+        className={clsx(
+          "flex flex-col overflow-hidden border-ink-950/10 bg-white",
+          isWidget
+            ? "h-full min-h-0 flex-1"
+            : "min-h-[70vh] rounded-2xl border shadow-panel",
+        )}
+      >
         <div className="flex items-center gap-3 border-b border-ink-950/10 bg-ink-950 px-4 py-3">
           <div className="relative">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold text-white">
@@ -228,9 +247,11 @@ export default function ChatShell() {
       </section>
 
       {/* Requirements column */}
-      <div className="hidden min-h-0 lg:block">
-        <RequirementsPanel requirements={requirements} />
-      </div>
+      {!isWidget ? (
+        <div className="hidden min-h-0 lg:block">
+          <RequirementsPanel requirements={requirements} />
+        </div>
+      ) : null}
     </div>
   );
 }

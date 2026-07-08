@@ -1,33 +1,45 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * Radiance Realtors brand tokens — the ONLY place site colors are defined.
+ * To match the client's exact shades, adjust these hex values and every
+ * component follows. Palette: near-black luxury base, radiant gold accent,
+ * warm cream canvas.
+ */
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
         ink: {
-          950: "#0b1220",
-          900: "#101a2e",
-          800: "#16233d",
-          700: "#1f3054",
+          950: "#0e0d0b",
+          900: "#171512",
+          800: "#221f1a",
+          700: "#332e26",
         },
+        // Accent family (buttons, highlights, progress) — radiant gold.
         brand: {
-          50: "#eef6f4",
-          100: "#d7ebe6",
-          300: "#7fc4b4",
-          500: "#2e9d84",
-          600: "#23806c",
-          700: "#1c6656",
+          50: "#faf5e9",
+          100: "#f3e8cd",
+          300: "#dfc389",
+          500: "#c9a24e",
+          600: "#ab8639",
+          700: "#8a6b2c",
         },
         gold: {
           300: "#e8cf9a",
           400: "#ddb96f",
           500: "#c9a24e",
         },
+        cream: {
+          50: "#faf8f4",
+          100: "#f4f0e8",
+          200: "#e9e2d4",
+        },
       },
       boxShadow: {
-        card: "0 1px 2px rgba(11, 18, 32, 0.06), 0 8px 24px rgba(11, 18, 32, 0.08)",
-        panel: "0 2px 6px rgba(11, 18, 32, 0.05), 0 16px 40px rgba(11, 18, 32, 0.1)",
+        card: "0 1px 2px rgba(14, 13, 11, 0.06), 0 8px 24px rgba(14, 13, 11, 0.08)",
+        panel: "0 2px 6px rgba(14, 13, 11, 0.05), 0 16px 40px rgba(14, 13, 11, 0.1)",
       },
       keyframes: {
         pulseDot: {
