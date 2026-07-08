@@ -27,8 +27,9 @@ export async function POST(req: Request) {
   }
   if (!text) return NextResponse.json({ error: "No text" }, { status: 400 });
 
-  const model = process.env.GROQ_TTS_MODEL ?? "playai-tts";
-  const voice = process.env.GROQ_TTS_VOICE ?? "Fritz-PlayAI"; // warm, natural male
+  // Orpheus is Groq's current expressive TTS (playai-tts was decommissioned).
+  const model = process.env.GROQ_TTS_MODEL ?? "canopylabs/orpheus-v1-english";
+  const voice = process.env.GROQ_TTS_VOICE ?? "troy"; // natural male voice
 
   try {
     const res = await fetch(`${GROQ_BASE_URL}/audio/speech`, {
