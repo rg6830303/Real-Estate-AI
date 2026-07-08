@@ -1,0 +1,30 @@
+{
+  "name": "real-estate-ai-consultant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Real Estate Consultant — a Groq-powered conversational advisor that discovers client requirements like a senior property consultant and recommends verified listings from Supabase.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "backtest": "node scripts/backtest.mjs",
+    "backtest:mock": "node scripts/backtest.mjs --mock"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.454.0",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3"
+  }
+}
