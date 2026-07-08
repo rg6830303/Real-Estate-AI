@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SendHorizontal } from "lucide-react";
+import { CheckCircle2, Mail, MessageCircle, SendHorizontal } from "lucide-react";
 import clsx from "clsx";
 import { ADVISOR_NAME } from "@/lib/config";
 import { openingGreeting } from "@/lib/consultant";
+import { emailHref, requirementsText, whatsappHref } from "@/lib/lead";
 import {
   EMPTY_REQUIREMENTS,
   type ChatStreamEvent,
@@ -42,8 +43,32 @@ export default function ChatShell({
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shortlist, setShortlist] = useState<PropertyListing[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const submittedPhoneRef = useRef<string | null>(null);
+
+  // When the client shares their phone, auto-submit the captured requirements +
+  // shortlist to the team (Web3Forms) exactly once — the AI "fills the form".
+  useEffect(() => {
+    const phone = requirements.phone;
+    if (!phone || submittedPhoneRef.current === phone) return;
+    submittedPhoneRef.current = phone;
+    void fetch("/api/enquiry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode: "ai-consultation",
+        name: requirements.name ?? "",
+        phone,
+        email: requirements.email ?? "",
+        interest: requirements.propertyType ?? "",
+        message: "Auto-submitted by Ashirvad after an AI consultation.",
+        requirementsText: requirementsText(requirements, shortlist),
+        shortlist: shortlist.map((p) => p.title),
+      }),
+    }).catch(() => {});
+  }, [requirements, shortlist]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -119,6 +144,7 @@ export default function ChatShell({
             } else if (ev.type === "state") {
               setRequirements(ev.requirements);
               turnProperties = ev.properties;
+              if (ev.properties.length) setShortlist(ev.properties);
             } else if (ev.type === "error") {
               throw new Error(ev.message);
             }
@@ -197,6 +223,10 @@ export default function ChatShell({
           <p className="border-t border-red-100 bg-red-50 px-4 py-2 text-xs text-red-600">
             {error}
           </p>
+        ) : null}
+
+        {requirements.phone ? (
+          <HandoffCard requirements={requirements} shortlist={shortlist} />
         ) : null}
 
         {showSuggestions ? (
@@ -284,6 +314,44 @@ function MessageBubble({
             ))}
           </div>
         ) : null}
+      </div>
+    </div>
+  );
+}
+
+function HandoffCard({
+  requirements,
+  shortlist,
+}: {
+  requirements: ClientRequirements;
+  shortlist: PropertyListing[];
+}) {
+  return (
+    <div className="border-t border-emerald-100 bg-emerald-50/70 px-4 py-3">
+      <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-800">
+        <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
+        {requirements.name ? `Thanks, ${requirements.name}! ` : ""}All your details are noted.
+      </p>
+      <p className="mt-0.5 text-xs text-emerald-800/80">
+        Our team will reach out on WhatsApp and email. You can also connect right now:
+      </p>
+      <div className="mt-2.5 flex flex-wrap gap-2">
+        <a
+          href={whatsappHref(requirements, shortlist)}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3.5 py-2 text-xs font-semibold text-white transition hover:brightness-105"
+        >
+          <MessageCircle className="h-4 w-4" strokeWidth={2} />
+          Chat on WhatsApp
+        </a>
+        <a
+          href={emailHref(requirements, shortlist)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-950/15 bg-white px-3.5 py-2 text-xs font-semibold text-ink-950 transition hover:border-gold-500"
+        >
+          <Mail className="h-4 w-4" strokeWidth={1.75} />
+          Email my details
+        </a>
       </div>
     </div>
   );

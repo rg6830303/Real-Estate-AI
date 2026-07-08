@@ -36,6 +36,9 @@ export interface ClientRequirements {
   niceToHaves: string[];
   familyContext: string | null; // e.g. "family of 4, two school-age kids, elderly parents"
   notes: string | null; // any other consultant-relevant detail
+  name: string | null; // client's name, once shared
+  phone: string | null; // client's phone, once shared
+  email: string | null; // client's email, once shared
   score: number; // 0-100 qualification / readiness score
   temperature: LeadTemperature;
 }
@@ -58,6 +61,9 @@ export const EMPTY_REQUIREMENTS: ClientRequirements = {
   niceToHaves: [],
   familyContext: null,
   notes: null,
+  name: null,
+  phone: null,
+  email: null,
   score: 0,
   temperature: "new",
 };

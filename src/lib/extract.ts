@@ -27,6 +27,9 @@ const EXTRACT_SYSTEM = `You are the requirement-extraction engine behind a real-
   "mustHaves": string[],        // hard requirements, short phrases
   "niceToHaves": string[],
   "familyContext": string|null, // e.g. "family of 4, two school-age kids"
+  "name": string|null,          // the client's name, only if they stated it
+  "phone": string|null,         // the client's phone number, only if they stated it
+  "email": string|null,         // the client's email, only if they stated it
   "notes": string|null,         // one crisp consultant-relevant note, max 20 words
   "score": number,              // 0-100 buying readiness: +25 clear budget, +20 specific location, +15 configuration, +20 near-term timeline, +10 financing clarity, +10 buy/invest intent
   "temperature": "hot"|"warm"|"cold"|"new"  // hot>=75, warm 50-74, cold 25-49, new<25
@@ -85,6 +88,9 @@ function normalize(raw: Record<string, unknown>): ClientRequirements {
     niceToHaves: strArr(raw.niceToHaves),
     familyContext: str(raw.familyContext),
     notes: str(raw.notes),
+    name: str(raw.name),
+    phone: str(raw.phone),
+    email: str(raw.email),
     score,
     temperature,
   };
@@ -115,6 +121,9 @@ function merge(prev: ClientRequirements, next: ClientRequirements): ClientRequir
     niceToHaves: next.niceToHaves.length ? next.niceToHaves : prev.niceToHaves,
     familyContext: next.familyContext ?? prev.familyContext,
     notes: next.notes ?? prev.notes,
+    name: next.name ?? prev.name,
+    phone: next.phone ?? prev.phone,
+    email: next.email ?? prev.email,
     score: Math.max(next.score, prev.score),
     temperature: next.score >= prev.score ? next.temperature : prev.temperature,
   };

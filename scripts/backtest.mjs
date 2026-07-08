@@ -264,7 +264,7 @@ async function main() {
   // The route serves the bundled Gurgaon dataset here (no MongoDB in the
   // test loop) — read its IDs straight from the source file so "is real
   // inventory" is asserted against exactly what the server serves.
-  const sampleSrc = readFileSync(path.join(ROOT, "src/data/gurgaon-listings.json"), "utf8");
+  const sampleSrc = readFileSync(path.join(ROOT, "src/data/radiance-listings.json"), "utf8");
   const inventoryIds = new Set([...sampleSrc.matchAll(/"id":\s*"([^"]+)"/g)].map((m) => m[1]));
   if (inventoryIds.size === 0) throw new Error("could not read sample inventory IDs");
 

@@ -1,5 +1,5 @@
 import type { ClientRequirements, Intent, PropertyListing, PropertyType } from "./types";
-import { SAMPLE_PROPERTIES } from "./sampleProperties";
+import { REAL_PROPERTIES } from "./realProperties";
 import { getDb, isMongoConfigured, PROPERTIES_COLLECTION } from "./mongodb";
 
 /**
@@ -16,7 +16,7 @@ import { getDb, isMongoConfigured, PROPERTIES_COLLECTION } from "./mongodb";
 let legacyPurgedThisInstance = false;
 
 export async function fetchActiveProperties(): Promise<PropertyListing[]> {
-  if (!isMongoConfigured()) return SAMPLE_PROPERTIES;
+  if (!isMongoConfigured()) return REAL_PROPERTIES;
   try {
     const db = await getDb();
     const col = db.collection(PROPERTIES_COLLECTION);
@@ -34,10 +34,10 @@ export async function fetchActiveProperties(): Promise<PropertyListing[]> {
     const mapped = rows
       .map((r) => fromDoc(r as Record<string, unknown>))
       .filter((p): p is PropertyListing => !!p);
-    return mapped.length > 0 ? mapped : SAMPLE_PROPERTIES;
+    return mapped.length > 0 ? mapped : REAL_PROPERTIES;
   } catch {
     // Never let a database outage take the consultant down.
-    return SAMPLE_PROPERTIES;
+    return REAL_PROPERTIES;
   }
 }
 
@@ -56,7 +56,7 @@ export async function seedProperties(
   const removed = (await col.deleteMany({ _id: { $in: LEGACY_SEED_IDS as never[] } }))
     .deletedCount;
   const seededAt = new Date().toISOString();
-  const ops = SAMPLE_PROPERTIES.map((p) => {
+  const ops = REAL_PROPERTIES.map((p) => {
     const { id, ...fields } = p;
     const doc = { ...fields, seededAt };
     return {
