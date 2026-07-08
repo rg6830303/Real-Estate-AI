@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import clsx from "clsx";
+import { submitLead } from "@/lib/lead";
 
 type Mode = "enquiry" | "visit";
 
@@ -14,18 +15,23 @@ export default function ContactForm() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries());
+    const fd = new FormData(form);
     setStatus("sending");
     setError("");
     try {
-      const res = await fetch("/api/enquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, mode }),
+      const { delivered } = await submitLead({
+        mode: mode === "visit" ? "visit" : "enquiry",
+        name: String(fd.get("name") ?? ""),
+        phone: String(fd.get("phone") ?? ""),
+        email: String(fd.get("email") ?? ""),
+        interest: String(fd.get("interest") ?? ""),
+        date: String(fd.get("date") ?? ""),
+        message: String(fd.get("message") ?? ""),
       });
-      if (!res.ok) {
-        const j = await res.json().catch(() => null);
-        throw new Error(j?.error ?? "Could not send. Please try again.");
+      if (!delivered) {
+        throw new Error(
+          "We couldn't send that just now. Please WhatsApp or call us on +91 96 50 50 5010 and we'll respond right away.",
+        );
       }
       setStatus("done");
       form.reset();

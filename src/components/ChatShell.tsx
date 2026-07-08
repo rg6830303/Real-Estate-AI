@@ -5,7 +5,7 @@ import { CheckCircle2, Mail, MessageCircle, SendHorizontal, Volume2, VolumeX } f
 import clsx from "clsx";
 import { ADVISOR_NAME } from "@/lib/config";
 import { openingGreeting } from "@/lib/consultant";
-import { emailHref, requirementsText, whatsappHref } from "@/lib/lead";
+import { emailHref, requirementsText, submitLead, whatsappHref } from "@/lib/lead";
 import { primeVoices, setVoiceEnabled, speak, stopSpeaking, voiceEnabled } from "@/lib/speech";
 import {
   EMPTY_REQUIREMENTS,
@@ -79,19 +79,15 @@ export default function ChatShell({
     const phone = requirements.phone;
     if (!phone || submittedPhoneRef.current === phone) return;
     submittedPhoneRef.current = phone;
-    void fetch("/api/enquiry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mode: "ai-consultation",
-        name: requirements.name ?? "",
-        phone,
-        email: requirements.email ?? "",
-        interest: requirements.propertyType ?? "",
-        message: "Auto-submitted by Ashirvad after an AI consultation.",
-        requirementsText: requirementsText(requirements, shortlist),
-        shortlist: shortlist.map((p) => p.title),
-      }),
+    void submitLead({
+      mode: "ai-consultation",
+      name: requirements.name ?? "",
+      phone,
+      email: requirements.email ?? "",
+      interest: requirements.propertyType ?? "",
+      message: "Auto-submitted by Ashirvad after an AI consultation.",
+      requirementsText: requirementsText(requirements, shortlist),
+      shortlist: shortlist.map((p) => p.title),
     }).catch(() => {});
   }, [requirements, shortlist]);
 
