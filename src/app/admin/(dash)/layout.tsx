@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { ExternalLink, Inbox, LayoutDashboard, Plus } from "lucide-react";
+import { ExternalLink, LayoutDashboard, Plus } from "lucide-react";
 import Logo from "@/components/Logo";
 import LogoutButton from "@/components/admin/LogoutButton";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/adminAuth";
@@ -30,12 +30,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-white/80 transition hover:text-gold-300"
             >
               <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} /> Dashboard
-            </Link>
-            <Link
-              href="/admin/leads"
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-white/80 transition hover:text-gold-300"
-            >
-              <Inbox className="h-4 w-4" strokeWidth={1.75} /> Form
             </Link>
             <Link
               href="/admin/new"
