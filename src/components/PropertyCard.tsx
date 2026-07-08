@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgeCheck, Building, Home, MapPin, Ruler } from "lucide-react";
+import { BadgeCheck, Building, Home, MapPin, PlayCircle, Ruler } from "lucide-react";
 import type { PropertyListing } from "@/lib/types";
 import { formatArea, formatPriceCr } from "@/lib/format";
 
@@ -29,6 +29,12 @@ export default function PropertyCard({ listing }: { listing: PropertyListing }) 
           <span className="absolute bottom-2 right-2 rounded-lg bg-ink-950/85 px-2.5 py-1 text-sm font-semibold text-gold-300 backdrop-blur">
             {formatPriceCr(listing.priceCr)}
           </span>
+          {listing.videoUrl ? (
+            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-lg bg-ink-950/85 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">
+              <PlayCircle className="h-3.5 w-3.5 text-gold-300" strokeWidth={2} />
+              Video
+            </span>
+          ) : null}
         </div>
       ) : null}
 

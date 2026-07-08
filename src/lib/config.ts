@@ -17,11 +17,23 @@ export const MARKET_REGION =
 /** Localities/corridors the agency serves, comma-separated in env. */
 export const SERVICE_AREAS = (
   process.env.NEXT_PUBLIC_SERVICE_AREAS ??
-  "Golf Course Road, Golf Course Extension Road, Dwarka Expressway, Sohna Road, Southern Peripheral Road, New Gurugram, Sohna (South Gurugram)"
+  "Golf Course Road, Golf Course Extension Road, Dwarka Expressway, Sohna Road, Southern Peripheral Road, New Gurugram, Sohna (South Gurugram), Goa"
 )
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+
+/** Public contact details — real Radiance Realtors coordinates, env-overridable. */
+export const CONTACT = {
+  phone: process.env.NEXT_PUBLIC_PHONE ?? "+91-96 50 50 5010",
+  phoneHref: process.env.NEXT_PUBLIC_PHONE_HREF ?? "+919650505010",
+  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "919650505010",
+  email: process.env.NEXT_PUBLIC_EMAIL ?? "info@radiancerealtors.com",
+  website: process.env.NEXT_PUBLIC_WEBSITE ?? "https://www.radiancerealtors.com",
+  facebook: "https://www.facebook.com/Radiancerealtors/",
+  instagram: "https://www.instagram.com/radiancerealtors/",
+  linkedin: "https://www.linkedin.com/company/radiance-realtors/",
+} as const;
 
 /** Main consultant model — Groq's strongest general model by default. */
 export const GROQ_MODEL = process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile";

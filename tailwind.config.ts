@@ -50,10 +50,32 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        // Slow zoom/pan for the hero slideshow backgrounds (video-like motion).
+        kenburns: {
+          "0%": { transform: "scale(1.08) translate(0, 0)" },
+          "100%": { transform: "scale(1.22) translate(-2%, -2%)" },
+        },
+        // Continuous horizontal scroll for the builder logo marquee.
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        fadeIn: {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-500px 0" },
+          "100%": { backgroundPosition: "500px 0" },
+        },
       },
       animation: {
         pulseDot: "pulseDot 1.2s infinite ease-in-out",
         riseIn: "riseIn 0.25s ease-out",
+        kenburns: "kenburns 12s ease-out forwards",
+        marquee: "marquee 32s linear infinite",
+        fadeIn: "fadeIn 0.8s ease-out",
+        shimmer: "shimmer 2s infinite linear",
       },
     },
   },

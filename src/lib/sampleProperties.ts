@@ -10,5 +10,10 @@ import gurgaonListings from "@/data/gurgaon-listings.json";
  * Prices are indicative July 2026 market levels for these projects; the
  * agency should keep the database rows current as deals move.
  */
-export const SAMPLE_PROPERTIES: PropertyListing[] =
-  gurgaonListings as PropertyListing[];
+export const SAMPLE_PROPERTIES: PropertyListing[] = (
+  gurgaonListings as Array<Partial<PropertyListing> & { id: string; title: string }>
+).map((p) => ({
+  gallery: [],
+  videoUrl: null,
+  ...p,
+})) as PropertyListing[];

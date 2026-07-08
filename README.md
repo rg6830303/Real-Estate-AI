@@ -63,6 +63,23 @@ Without MongoDB configured, the consultant serves the bundled 20 real Gurgaon li
 
 > ⚠️ **Never commit API keys or connection strings.** If a credential has ever been shared in chat, email, or a commit, rotate it (Groq: console.groq.com; Atlas: Database Access → Edit password).
 
+## Admin console (`radianceadmin.vercel.app`)
+
+The same deployment serves a password-protected admin console on a second domain,
+routed by `src/middleware.ts` (any host starting with `radianceadmin.` is rewritten to `/admin`).
+
+1. In Vercel → Project → **Settings → Domains**, add `radianceadmin.vercel.app` to this project.
+2. Set **`ADMIN_PASSWORD`** (Environment Variables). There is **no default** — until it is set, admin login always fails by design.
+3. Visit `https://radianceadmin.vercel.app`, sign in, and you get a **direct-to-database** console:
+   - Listings **grouped by city**, with add / edit / delete.
+   - Add a property in a **new city** simply by typing the city name (cities are derived from listings).
+   - **Upload photos and video clips**, or paste a hosted URL. Uploads are stored in the same MongoDB (GridFS) and served at `/api/media/<id>`; every change is reflected on the website and to the AI consultant on the next request (the chat pipeline reads inventory fresh each turn).
+   - **Clean demo data** button removes any retired sample rows so the DB holds real data only.
+
+> Serverless request bodies are capped (~4.5 MB on Vercel's default tier), so upload photos and short clips directly; for large videos paste a hosted URL (YouTube/Vimeo/CDN).
+
+**Real data only:** the bundled dataset is the agency's real projects (Central Park Flamingo Floors, Aqua Front Towers, Belgravia, Sky Villas, Bellavista, Bignonia, …). The old placeholder rows are auto-purged once per instance on first traffic after deploy, on every `/api/seed`, and via the admin **Clean demo data** button.
+
 ## The property database (MongoDB Atlas)
 
 Collection: **`properties`** in database **`realestate`** (override with `MONGODB_DB`). Document shape:
@@ -84,7 +101,9 @@ Collection: **`properties`** in database **`realestate`** (override with `MONGOD
   "amenities": ["Clubhouse", "..."],
   "highlights": "One-line consultant note shown to clients",
   "reraId": null,                      // fill in the official HRERA registration no.
-  "imageUrl": "https://…",            // any hosted photo URL
+  "imageUrl": "https://…",            // primary photo (hosted URL or /api/media/<id>)
+  "gallery": ["https://…"],           // extra photos
+  "videoUrl": null,                    // walkthrough video (hosted URL or /api/media/<id>)
   "active": true                       // set false to pull a listing instantly
 }
 ```
@@ -122,5 +141,6 @@ All branding is env-driven, so one deployment per client is the only change need
 | `MONGODB_URI` | recommended | Atlas connection string (server-only) |
 | `MONGODB_DB` | — | Database name (default `realestate`) |
 | `SEED_TOKEN` | — | If set, `/api/seed` requires `?token=` |
+| `ADMIN_PASSWORD` | for admin | Password for the admin console. No default — admin is disabled until set. |
 | `GROQ_MODEL` / `GROQ_EXTRACT_MODEL` | — | Model overrides |
 | `NEXT_PUBLIC_AGENCY_NAME` / `NEXT_PUBLIC_ADVISOR_NAME` / `NEXT_PUBLIC_MARKET_REGION` / `NEXT_PUBLIC_SERVICE_AREAS` | — | White-label branding |

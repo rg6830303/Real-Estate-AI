@@ -10,11 +10,21 @@ import { getDb, isMongoConfigured, PROPERTIES_COLLECTION } from "./mongodb";
  * if Atlas is unreachable) the same dataset serves as an in-process fallback,
  * so the consultant is never left without inventory.
  */
+// Ensures the retired demo rows are cleared once per serverless instance, so a
+// database that was seeded with the old sample data self-cleans on redeploy —
+// no manual step required.
+let legacyPurgedThisInstance = false;
+
 export async function fetchActiveProperties(): Promise<PropertyListing[]> {
   if (!isMongoConfigured()) return SAMPLE_PROPERTIES;
   try {
     const db = await getDb();
     const col = db.collection(PROPERTIES_COLLECTION);
+
+    if (!legacyPurgedThisInstance) {
+      legacyPurgedThisInstance = true;
+      await col.deleteMany({ _id: { $in: LEGACY_SEED_IDS as never[] } });
+    }
 
     if ((await col.estimatedDocumentCount()) === 0) {
       await seedProperties(false);
@@ -39,9 +49,12 @@ export async function fetchActiveProperties(): Promise<PropertyListing[]> {
  */
 export async function seedProperties(
   overwrite: boolean,
-): Promise<{ inserted: number; updated: number; total: number }> {
+): Promise<{ inserted: number; updated: number; removed: number; total: number }> {
   const db = await getDb();
   const col = db.collection(PROPERTIES_COLLECTION);
+  // Always remove the retired demo/sample rows so the DB holds real data only.
+  const removed = (await col.deleteMany({ _id: { $in: LEGACY_SEED_IDS as never[] } }))
+    .deletedCount;
   const seededAt = new Date().toISOString();
   const ops = SAMPLE_PROPERTIES.map((p) => {
     const { id, ...fields } = p;
@@ -59,8 +72,45 @@ export async function seedProperties(
   return {
     inserted: res.upsertedCount,
     updated: res.modifiedCount,
+    removed,
     total,
   };
+}
+
+/**
+ * Stable `_id`s of the earlier placeholder Gurgaon dataset (Sobha City, Godrej
+ * Meridien, …). These are deleted on every seed and by the admin "Clean demo
+ * data" action so no fake inventory can linger in the client's database.
+ */
+export const LEGACY_SEED_IDS: string[] = [
+  "sobha-city-s108",
+  "godrej-meridien-s106",
+  "ats-tourmaline-s109",
+  "m3m-golf-estate-s65",
+  "m3m-heights-s65",
+  "emaar-emerald-hills-s65",
+  "emaar-urban-ascent-s112",
+  "dlf-the-arbour-s63",
+  "tulip-violet-s69",
+  "signature-global-city92",
+  "signature-global-park-sohna",
+  "smart-world-orchard-s61",
+  "whiteland-the-aspen-s76",
+  "bestech-park-view-grand-spa-s81",
+  "vatika-gurgaon21-s83",
+  "pioneer-park-s61",
+  "central-park-resorts-s48",
+  "dlf-new-town-heights-s90",
+  "godrej-aria-s79",
+  "adani-samsara-vilasa-s63",
+];
+
+/** Delete any retired demo rows. Returns how many were removed. */
+export async function purgeLegacySeed(): Promise<number> {
+  const db = await getDb();
+  const col = db.collection(PROPERTIES_COLLECTION);
+  const res = await col.deleteMany({ _id: { $in: LEGACY_SEED_IDS as never[] } });
+  return res.deletedCount;
 }
 
 const PROPERTY_TYPES: PropertyType[] = [
@@ -89,6 +139,7 @@ function fromDoc(doc: Record<string, unknown>): PropertyListing | null {
     ? ((doc.intentFit ?? doc.intent_fit) as unknown[])
     : [];
   const rawAmenities = Array.isArray(doc.amenities) ? (doc.amenities as unknown[]) : [];
+  const rawGallery = Array.isArray(doc.gallery) ? (doc.gallery as unknown[]) : [];
   const propertyType = str(doc.propertyType ?? doc.property_type) ?? "Apartment";
   return {
     id,
@@ -109,6 +160,8 @@ function fromDoc(doc: Record<string, unknown>): PropertyListing | null {
     highlights: str(doc.highlights),
     reraId: str(doc.reraId ?? doc.rera_id),
     imageUrl: str(doc.imageUrl ?? doc.image_url),
+    gallery: rawGallery.filter((g): g is string => typeof g === "string" && !!g.trim()),
+    videoUrl: str(doc.videoUrl ?? doc.video_url),
     active: doc.active !== false,
   };
 }
@@ -214,8 +267,132 @@ export function matchProperties(
     .map((s) => s.listing);
 }
 
-/** Enough discovered to attempt a shortlist at all? */
+/**
+ * Enough discovered to attempt a shortlist at all? The consultant runs a
+ * standard discovery first, so we only surface matches once we know the
+ * location, a budget ceiling, AND a configuration/type — mirroring when a
+ * human consultant would actually start shortlisting.
+ */
 export function hasEnoughSignal(r: ClientRequirements): boolean {
   const hasLocation = !!r.city || r.localities.length > 0;
-  return hasLocation && (!!r.bhk || r.budgetMaxCr != null);
+  const hasBudget = r.budgetMaxCr != null && r.budgetMaxCr > 0;
+  const hasConfig = !!r.bhk || !!r.propertyType;
+  return hasLocation && hasBudget && hasConfig;
+}
+
+// ---------------------------------------------------------------------------
+// Admin CRUD — used only by the password-protected admin console. These read
+// and write the same `properties` collection the site and AI consultant use,
+// so every change is reflected everywhere on the next request (realtime).
+// ---------------------------------------------------------------------------
+
+export interface AdminPropertyInput {
+  id?: string | null;
+  title: string;
+  developer?: string | null;
+  city: string;
+  locality: string;
+  propertyType: string;
+  bhk?: string | null;
+  priceCr: number;
+  areaSqft?: number;
+  possession?: string;
+  possessionDate?: string | null;
+  intentFit?: string[];
+  amenities?: string[];
+  highlights?: string | null;
+  reraId?: string | null;
+  imageUrl?: string | null;
+  gallery?: string[];
+  videoUrl?: string | null;
+  active?: boolean;
+}
+
+function slugId(title: string, city: string): string {
+  const base = `${title}-${city}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return base || `listing-${Date.now()}`;
+}
+
+/** Every listing (active + inactive), sorted by city then title. */
+export async function listAllProperties(): Promise<PropertyListing[]> {
+  const db = await getDb();
+  const rows = await db.collection(PROPERTIES_COLLECTION).find({}).limit(2000).toArray();
+  return rows
+    .map((r) => fromDoc(r as Record<string, unknown>))
+    .filter((p): p is PropertyListing => !!p)
+    .sort((a, b) => a.city.localeCompare(b.city) || a.title.localeCompare(b.title));
+}
+
+export async function getProperty(id: string): Promise<PropertyListing | null> {
+  const db = await getDb();
+  const row = await db.collection(PROPERTIES_COLLECTION).findOne({ _id: id as never });
+  return row ? fromDoc(row as Record<string, unknown>) : null;
+}
+
+/** Distinct city names present in the database. */
+export async function distinctCities(): Promise<string[]> {
+  const db = await getDb();
+  const cities = (await db.collection(PROPERTIES_COLLECTION).distinct("city")) as unknown[];
+  return cities.filter((c): c is string => typeof c === "string" && !!c.trim()).sort();
+}
+
+/** Create or update a listing. Returns the stored id. */
+export async function upsertProperty(input: AdminPropertyInput): Promise<string> {
+  const title = (input.title ?? "").trim();
+  const city = (input.city ?? "").trim();
+  const priceCr = Number(input.priceCr);
+  if (!title) throw new Error("Title is required.");
+  if (!city) throw new Error("City is required.");
+  if (!Number.isFinite(priceCr) || priceCr <= 0)
+    throw new Error("A valid price (₹ Cr) is required.");
+
+  const db = await getDb();
+  const col = db.collection(PROPERTIES_COLLECTION);
+
+  let id = (input.id ?? "").trim();
+  if (!id) {
+    id = slugId(title, city);
+    // Avoid clobbering an existing listing when creating a new one.
+    if (await col.findOne({ _id: id as never }))
+      id = `${id}-${Date.now().toString(36).slice(-4)}`;
+  }
+
+  const propType = PROPERTY_TYPES.includes(input.propertyType as PropertyType)
+    ? input.propertyType
+    : "Apartment";
+
+  const doc = {
+    title,
+    developer: (input.developer ?? "").trim() || null,
+    city,
+    locality: (input.locality ?? "").trim(),
+    propertyType: propType,
+    bhk: (input.bhk ?? "").trim() || null,
+    priceCr,
+    areaSqft: Number(input.areaSqft) || 0,
+    possession:
+      input.possession === "Under construction" ? "Under construction" : "Ready to move",
+    possessionDate: (input.possessionDate ?? "").trim() || null,
+    intentFit: (input.intentFit ?? []).filter((i) => INTENTS.includes(i as Intent)),
+    amenities: (input.amenities ?? []).map((a) => a.trim()).filter(Boolean),
+    highlights: (input.highlights ?? "").trim() || null,
+    reraId: (input.reraId ?? "").trim() || null,
+    imageUrl: (input.imageUrl ?? "").trim() || null,
+    gallery: (input.gallery ?? []).map((g) => g.trim()).filter(Boolean),
+    videoUrl: (input.videoUrl ?? "").trim() || null,
+    active: input.active !== false,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await col.updateOne({ _id: id as never }, { $set: doc }, { upsert: true });
+  return id;
+}
+
+export async function deleteProperty(id: string): Promise<boolean> {
+  const db = await getDb();
+  const res = await db.collection(PROPERTIES_COLLECTION).deleteOne({ _id: id as never });
+  return res.deletedCount > 0;
 }

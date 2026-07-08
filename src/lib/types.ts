@@ -86,7 +86,9 @@ export interface PropertyListing {
   amenities: string[];
   highlights: string | null; // one-line consultant note on why this stands out
   reraId: string | null;
-  imageUrl: string | null;
+  imageUrl: string | null; // primary photo (external URL or /api/media/<id>)
+  gallery: string[]; // additional photo URLs
+  videoUrl: string | null; // walkthrough video (external URL or /api/media/<id>)
   active: boolean;
 }
 

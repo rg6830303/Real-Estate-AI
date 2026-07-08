@@ -52,15 +52,15 @@ const SCENARIOS = [
     },
   },
   {
-    name: "Investor — Gurgaon 2 BHK under ₹1.2 Cr",
+    name: "Investor — Gurgaon 3 BHK under ₹3 Cr",
     turns: [
       "I want to invest in property in Gurgaon for rental income",
-      "A 2 BHK under 1.2 crore would be ideal, somewhere with good tenant demand",
+      "A 3 BHK apartment under 3 crore would be ideal, somewhere with good tenant demand",
     ],
     expect: {
       minFinalScore: 30,
       city: "Gurugram",
-      budgetMaxCr: 1.2,
+      budgetMaxCr: 3,
       wantMatchesByEnd: true,
     },
   },
