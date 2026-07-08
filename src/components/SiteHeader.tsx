@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, Phone, X } from "lucide-react";
 import clsx from "clsx";
 import Logo from "./Logo";
+import { WhatsAppIcon } from "./WhatsAppButton";
 import { ADVISOR_NAME, CONTACT } from "@/lib/config";
 import { NAV_LINKS } from "@/lib/site";
 
@@ -31,6 +32,16 @@ export default function SiteHeader() {
           >
             <Phone className="h-4 w-4" strokeWidth={1.75} />
             {CONTACT.phone}
+          </a>
+          <a
+            href={`https://wa.me/${CONTACT.whatsapp}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="WhatsApp us"
+            className="hidden items-center gap-1.5 rounded-lg border border-[#25D366]/40 px-2.5 py-1.5 text-sm font-medium text-[#25D366] transition hover:bg-[#25D366] hover:text-white sm:flex"
+          >
+            <WhatsAppIcon className="h-4 w-4" />
+            <span className="hidden lg:inline">WhatsApp</span>
           </a>
           <Link
             href="/consultant"

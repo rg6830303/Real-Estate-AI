@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AGENCY_NAME, AGENCY_TAGLINE } from "@/lib/config";
 import ChatWidget from "@/components/ChatWidget";
 import PageVoiceIntro from "@/components/PageVoiceIntro";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body>
         {children}
         <PageVoiceIntro />
+        <WhatsAppButton />
         <ChatWidget />
       </body>
     </html>
